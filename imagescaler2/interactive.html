@@ -8,6 +8,10 @@
 		{
 			margin: 0 0 10px 0;
 		}
+		p
+		{
+			margin: 0 0 5px 0;
+		}
 		
 		p#code
 		{
@@ -39,6 +43,7 @@
 			right: 20px;
 			top: 20px;
 			padding: 20px;
+			background-color: #fff;
 			background-color: rgba(255,255,255,0.8);
 			border-radius: 10px;
 			border: 1px solid #888;
@@ -48,7 +53,7 @@
 		{
 			position: relative;
 			overflow: hidden;
-			background-color: #fcf;
+			background-color: #edc;
 		}
 		
 		.outerwrapper .innerwrapper
@@ -58,14 +63,14 @@
 		
 		.outerwrapper .indicator
 		{
-			position: absolute; 
+			position: absolute;
 			margin: 0;
 			padding: 0;
 		}
 		.outerwrapper .indicator2
 		{
 			position: absolute;
-			border: 1px solid #09f;
+			background-color: rgba(255,255,0,0.5);
 			margin: 0;
 			padding: 0;
 		}
@@ -73,10 +78,16 @@
 </head>
 <body>
 	<form>
+	<p>
+		Final output:</p>
 	<div id="preview">
 	</div>
+	<p>
+		Crop region:</p>
 	<div id="preview2">
 	</div>
+	<p>
+		Original image + region of interest:</p>
 	<div id="input">
 	</div>
 	<div id="panel">
@@ -163,20 +174,22 @@
 				ht += '<div class=\"outerwrapper\" style=\"width:' + ow + 'px;height:' + oh + 'px;\">';
 				ht += '<div class=\"innerwrapper\" style=\"left:' + px + 'px;top:' + py + 'px;\">';
 				ht += '<img src=\"' + iu + '\" style=\"width:' + niw + 'px;height:' + nih + 'px;\">';
-				ht += '</div>'; 
+				ht += '</div>';
 				ht += '</div>';
 
 				$('#preview').html(ht);
 
 				ht = '';
-				ht += '<div class=\"outerwrapper\"><div style=\"margin:100px;width:' + niw + 'px;height:' + nih + 'px;\"></div>';
+				ht += '<div class=\"outerwrapper\" style=\"height:' + (oh + 200) + 'px;\"><div style=\"margin:100px;width:' + niw + 'px;height:' + nih + 'px;\"></div>';
 				ht += '<div class=\"indicator\" style=\"left:' + (100 + px) + 'px;top:' + (100 + py) + 'px;width:' + pw + 'px;height:' + ph + 'px;\"><img src=\"' + iu + '\" style=\"width:' + niw + 'px;height:' + nih + 'px;\"/></div>';
-				ht += '<div class=\"indicator2\" style=\"left:' + 100 + 'px;top:' + 100  + 'px;width:' + ow + 'px;height:' + oh + 'px;\"></div>';
+				ht += '<div class=\"indicator2\" style=\"left:' + 100 + 'px;top:' + 100 + 'px;width:' + ow + 'px;height:' + oh + 'px;\"></div>';
 				ht += '</div>';
 
 				$('#preview2').html(ht);
 
-				$('#code').html(JSON.stringify(r));
+				var code = 'var r = ImageScaler2.calcRegion3(' + iw + ', ' + ih + ', ' + ow + ', ' + oh + ', ' + rx1 + ', ' + ry1 + ', ' + rx2 + ', ' + ry2 + ', ' + fe + ');\n';
+				code += 'r = ' + JSON.stringify(r);
+				$('#code').html(code);
 
 
 			};
@@ -208,88 +221,66 @@
 			};
 
 			demodata1 = function () {
-
-				$('#iu').val('http://www.photoshopstar.com/wp-content/uploads/2009/05/photo_manipulation_eye.jpg');
+				$('#iu').val('http://farm6.static.flickr.com/5009/5217881218_d5244ab43b.jpg');
 				$('#iw').val('500');
-				$('#ih').val('300');
-
+				$('#ih').val('333');
 				$('#ow').val('100');
-				$('#oh').val('150');
+				$('#oh').val('50');
 				$('#oa').val('0.75');
-
 				$('#fe')[0].checked = true;
 				$('#re')[0].checked = true;
-
 				$('#rx1').val('180');
-				$('#ry1').val('100');
-				$('#rx2').val('300');
-				$('#ry2').val('220');
-				// .val('x');
+				$('#ry1').val('50');
+				$('#rx2').val('330');
+				$('#ry2').val('200');
 			};
 
 			demodata2 = function () {
-
 				$('#iu').val('http://www.photoshopstar.com/wp-content/uploads/2009/05/photo_manipulation_eye.jpg');
 				$('#iw').val('500');
 				$('#ih').val('300');
-
 				$('#ow').val('100');
 				$('#oh').val('100');
 				$('#oa').val('1.0');
-
 				$('#fe')[0].checked = true;
 				$('#re')[0].checked = true;
-
 				$('#rx1').val('180');
 				$('#ry1').val('100');
 				$('#rx2').val('300');
 				$('#ry2').val('220');
-				// .val('x');
 			};
 
 			demodata3 = function () {
-
 				$('#iu').val('http://www.huddletogether.com/projects/lightbox2/images/image-2.jpg');
 				$('#iw').val('600');
 				$('#ih').val('450');
-
 				$('#ow').val('100');
 				$('#oh').val('100');
 				$('#oa').val('1.0');
-
 				$('#fe')[0].checked = true;
 				$('#re')[0].checked = false;
-
-				$('#rx1').val('0');
-				$('#ry1').val('0');
+				$('#rx1').val('250');
+				$('#ry1').val('100');
 				$('#rx2').val('600');
-				$('#ry2').val('450');
-				// .val('x');
+				$('#ry2').val('350');
 			};
 
 			demodata4 = function () {
-
 				$('#iu').val('http://farm5.static.flickr.com/4022/5151073555_8acb6bb047_z.jpg');
 				$('#iw').val('425');
 				$('#ih').val('640');
-
 				$('#ow').val('64');
 				$('#oh').val('64');
 				$('#oa').val('1.0');
-
 				$('#fe')[0].checked = true;
 				$('#re')[0].checked = true;
-
-				$('#rx1').val('100');
-				$('#ry1').val('200');
-				$('#rx2').val('300');
-				$('#ry2').val('500');
-				// .val('x');
+				$('#rx1').val('250');
+				$('#ry1').val('500');
+				$('#rx2').val('400');
+				$('#ry2').val('640');
 			};
 
-			console.log('x');
-
-			this.demodata4();
+			this.demodata1();
 
 			(function (self) {
 				$('#iu').change(function () { self.inputchanged(); });
