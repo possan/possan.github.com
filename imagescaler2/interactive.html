@@ -1,0 +1,320 @@
+<html>
+<head>
+	<script type="text/javascript" src="http://code.jquery.com/jquery-1.4.4.min.js"></script>
+	<script type="text/javascript" src="imagescaler.js"></script>
+	<script type="text/javascript" src="json2.js"></script>
+	<style type="text/css">
+		h2
+		{
+			margin: 0 0 10px 0;
+		}
+		
+		p#code
+		{
+			display: block;
+			margin: 0;
+			border: 1px solid #888;
+			background-color: #fff;
+			padding: 10px 15px;
+			font: 10pt Arial;
+		}
+		
+		#preview, #preview2, #input
+		{
+			position: relative;
+			margin: 0 0 20px 0;
+			border: 1px solid #f0f;
+			padding: 0;
+		}
+		
+		#input .region
+		{
+			position: absolute;
+			border: 1px solid #0f0;
+		}
+		
+		#panel
+		{
+			position: fixed;
+			right: 20px;
+			top: 20px;
+			padding: 20px;
+			background-color: rgba(255,255,255,0.8);
+			border-radius: 10px;
+			border: 1px solid #888;
+		}
+		
+		.outerwrapper
+		{
+			position: relative;
+			overflow: hidden;
+			background-color: #fcf;
+		}
+		
+		.outerwrapper .innerwrapper
+		{
+			position: absolute;
+		}
+		
+		.outerwrapper .indicator
+		{
+			position: absolute; 
+			margin: 0;
+			padding: 0;
+		}
+		.outerwrapper .indicator2
+		{
+			position: absolute;
+			border: 1px solid #09f;
+			margin: 0;
+			padding: 0;
+		}
+	</style>
+</head>
+<body>
+	<form>
+	<div id="preview">
+	</div>
+	<div id="preview2">
+	</div>
+	<div id="input">
+	</div>
+	<div id="panel">
+		<h2>
+			Interactive demo</h2>
+		<p>
+			<a href="#" id="demo1">demo1</a> <a href="#" id="demo2">demo2</a> <a href="#" id="demo3">demo3</a> <a href="#" id="demo4">demo4</a>
+		</p>
+		<p>
+			<input type="checkbox" id="re" />
+			Region of interest:
+			<input type="text" id="rx1" style="width: 30px;" />
+			<input type="text" id="ry1" style="width: 30px;" />
+			to
+			<input type="text" id="rx2" style="width: 30px;" />
+			<input type="text" id="ry2" style="width: 30px;" />
+		</p>
+		<p>
+			<input type="checkbox" id="fe" />
+			Fill
+		</p>
+		<p>
+			Target size:
+			<input type="text" id="ow" style="width: 30px;" />
+			x
+			<input type="text" id="oh" style="width: 30px;" />
+			aspect
+			<input type="text" id="oa" style="width: 40px;" />
+		</p>
+		<p>
+			Input image url:
+			<input type="text" id="iu" />
+			Size:
+			<input type="text" id="iw" style="width: 30px;" />
+			x
+			<input type="text" id="ih" style="width: 30px;" />
+		</p>
+		<h2>
+			Code</h2>
+		<textarea id="code" style="width: 100%; height: 100px;">
+			dummy
+		</textarea>
+	</div>
+	</form>
+	<script type="text/javascript">
+
+		(function () {
+
+			updateoutput = function () {
+
+				var iu = $('#iu').val();
+
+				var iw = parseInt($('#iw').val());
+				var ih = parseInt($('#ih').val());
+
+
+				var fe = $('#fe')[0].checked;
+				var re = $('#re')[0].checked;
+				var rx1 = parseInt($('#rx1').val());
+				var ry1 = parseInt($('#ry1').val());
+				var rx2 = parseInt($('#rx2').val());
+				var ry2 = parseInt($('#ry2').val());
+
+				var ow = parseInt($('#ow').val());
+				var oh = parseInt($('#oh').val());
+				//	var oa = parseInt($('#oa').val());
+
+				var r = null;
+				if (re)
+					r = ImageScaler2.calcRegion3(iw, ih, ow, oh, rx1, ry1, rx2, ry2, fe);
+				else
+					r = ImageScaler2.calcRegion1(iw, ih, ow, oh, fe);
+
+				var niw = Math.round(iw * r.mag);
+				var nih = Math.round(ih * r.mag);
+
+				var px = Math.round(r.l);
+				var py = Math.round(r.t);
+				var pw = Math.round(r.r - r.l);
+				var ph = Math.round(r.b - r.t);
+
+				var ht = '';
+
+				ht += '<div class=\"outerwrapper\" style=\"width:' + ow + 'px;height:' + oh + 'px;\">';
+				ht += '<div class=\"innerwrapper\" style=\"left:' + px + 'px;top:' + py + 'px;\">';
+				ht += '<img src=\"' + iu + '\" style=\"width:' + niw + 'px;height:' + nih + 'px;\">';
+				ht += '</div>'; 
+				ht += '</div>';
+
+				$('#preview').html(ht);
+
+				ht = '';
+				ht += '<div class=\"outerwrapper\"><div style=\"margin:100px;width:' + niw + 'px;height:' + nih + 'px;\"></div>';
+				ht += '<div class=\"indicator\" style=\"left:' + (100 + px) + 'px;top:' + (100 + py) + 'px;width:' + pw + 'px;height:' + ph + 'px;\"><img src=\"' + iu + '\" style=\"width:' + niw + 'px;height:' + nih + 'px;\"/></div>';
+				ht += '<div class=\"indicator2\" style=\"left:' + 100 + 'px;top:' + 100  + 'px;width:' + ow + 'px;height:' + oh + 'px;\"></div>';
+				ht += '</div>';
+
+				$('#preview2').html(ht);
+
+				$('#code').html(JSON.stringify(r));
+
+
+			};
+
+			inputchanged = function () {
+
+				var iu = $('#iu').val();
+
+				var iw = parseInt($('#iw').val());
+				var ih = parseInt($('#ih').val());
+
+				var rx1 = parseInt($('#rx1').val());
+				var ry1 = parseInt($('#ry1').val());
+				var rx2 = parseInt($('#rx2').val());
+				var ry2 = parseInt($('#ry2').val());
+
+				var rw = rx2 - rx1;
+				var rh = ry2 - ry1;
+
+				var ht = '';
+
+				ht += '<img src=\"' + iu + '\" />';
+
+				ht += '<div class=\"region\" style=\"left:' + rx1 + 'px;top:' + ry1 + 'px;width:' + rw + 'px;height:' + rh + 'px;\"></div>';
+
+				$('#input').html(ht);
+
+				this.updateoutput();
+			};
+
+			demodata1 = function () {
+
+				$('#iu').val('http://www.photoshopstar.com/wp-content/uploads/2009/05/photo_manipulation_eye.jpg');
+				$('#iw').val('500');
+				$('#ih').val('300');
+
+				$('#ow').val('100');
+				$('#oh').val('150');
+				$('#oa').val('0.75');
+
+				$('#fe')[0].checked = true;
+				$('#re')[0].checked = true;
+
+				$('#rx1').val('180');
+				$('#ry1').val('100');
+				$('#rx2').val('300');
+				$('#ry2').val('220');
+				// .val('x');
+			};
+
+			demodata2 = function () {
+
+				$('#iu').val('http://www.photoshopstar.com/wp-content/uploads/2009/05/photo_manipulation_eye.jpg');
+				$('#iw').val('500');
+				$('#ih').val('300');
+
+				$('#ow').val('100');
+				$('#oh').val('100');
+				$('#oa').val('1.0');
+
+				$('#fe')[0].checked = true;
+				$('#re')[0].checked = true;
+
+				$('#rx1').val('180');
+				$('#ry1').val('100');
+				$('#rx2').val('300');
+				$('#ry2').val('220');
+				// .val('x');
+			};
+
+			demodata3 = function () {
+
+				$('#iu').val('http://www.huddletogether.com/projects/lightbox2/images/image-2.jpg');
+				$('#iw').val('600');
+				$('#ih').val('450');
+
+				$('#ow').val('100');
+				$('#oh').val('100');
+				$('#oa').val('1.0');
+
+				$('#fe')[0].checked = true;
+				$('#re')[0].checked = false;
+
+				$('#rx1').val('0');
+				$('#ry1').val('0');
+				$('#rx2').val('600');
+				$('#ry2').val('450');
+				// .val('x');
+			};
+
+			demodata4 = function () {
+
+				$('#iu').val('http://farm5.static.flickr.com/4022/5151073555_8acb6bb047_z.jpg');
+				$('#iw').val('425');
+				$('#ih').val('640');
+
+				$('#ow').val('64');
+				$('#oh').val('64');
+				$('#oa').val('1.0');
+
+				$('#fe')[0].checked = true;
+				$('#re')[0].checked = true;
+
+				$('#rx1').val('100');
+				$('#ry1').val('200');
+				$('#rx2').val('300');
+				$('#ry2').val('500');
+				// .val('x');
+			};
+
+			console.log('x');
+
+			this.demodata4();
+
+			(function (self) {
+				$('#iu').change(function () { self.inputchanged(); });
+				$('#iw').change(function () { self.inputchanged(); });
+				$('#ih').change(function () { self.inputchanged(); });
+				$('#ow').change(function () { self.inputchanged(); });
+				$('#oh').change(function () { self.inputchanged(); });
+				$('#fe').change(function () { self.inputchanged(); });
+				$('#re').change(function () { self.inputchanged(); });
+				$('#rx1').change(function () { self.inputchanged(); });
+				$('#ry1').change(function () { self.inputchanged(); });
+				$('#rx2').change(function () { self.inputchanged(); });
+				$('#ry2').change(function () { self.inputchanged(); });
+				$('#demo1').click(function () { self.demodata1(); self.inputchanged(); });
+				$('#demo2').click(function () { self.demodata2(); self.inputchanged(); });
+				$('#demo3').click(function () { self.demodata3(); self.inputchanged(); });
+				$('#demo4').click(function () { self.demodata4(); self.inputchanged(); });
+			})(this);
+
+			this.inputchanged();
+			this.updateoutput();
+
+		})();
+
+
+	</script>
+</body>
+</html>

@@ -1,0 +1,241 @@
+<html>
+<head>
+	<script type="text/javascript" src="qunit.js"></script>
+	<link rel="stylesheet" href="qunit.css" />
+	<meta http-equiv="refresh" content="60">
+	<script type="text/javascript" src="imagescaler.js"></script>
+	<script type="text/javascript">
+
+		module("ImageScaler calcSize");
+
+		test("Can calc size 1", function () {
+			var r = ImageScaler2.calcSize(100, 100, 1);
+			equals(r.width, 100);
+			equals(r.height, 100);
+		});
+
+		test("Can calc size 2", function () {
+			var r = ImageScaler2.calcSize(1600, 0, 16 / 9);
+			equals(r.width, 1600);
+			equals(r.height, 900);
+		});
+
+		test("Can calc size 3", function () {
+			var r = ImageScaler2.calcSize(1600, 0, 16 / 9);
+			equals(r.width, 1600);
+			equals(r.height, 900);
+		});
+
+		test("Can calc size 3", function () {
+			var r = ImageScaler2.calcSize(0, 900, 16 / 9);
+			equals(r.width, 1600);
+			equals(r.height, 900);
+		});
+
+		test("Can calc size 4", function () {
+			var r = ImageScaler2.calcSize(0, 900, 16 / 9);
+			equals(r.width, 1600);
+			equals(r.height, 900);
+		});
+
+		module("ImageScaler calcRegion1");
+
+		test("Can scale a square image down by 2", function () {
+			var r = ImageScaler2.calcRegion1(100, 100, 50, 50, false);
+			equals(r.mag, 0.5);
+			equals(r.l, 0);
+			equals(r.t, 0);
+			equals(r.r, 50);
+			equals(r.b, 50);
+		});
+
+		test("Dont scale at all when not needed", function () {
+			var r = ImageScaler2.calcRegion1(100, 100, 100, 100, false);
+			equals(r.mag, 1.0);
+			equals(r.l, 0);
+			equals(r.t, 0);
+			equals(r.r, 100);
+			equals(r.b, 100);
+		});
+
+		test("Can fit a 4:1 image in a 2:1 container", function () {
+			var r = ImageScaler2.calcRegion1(400, 100, 200, 100, false);
+			equals(r.mag, 0.5);
+			equals(r.l, 0);
+			equals(r.t, 25);
+			equals(r.r, 200);
+			equals(r.b, 75);
+		});
+
+		test("Can fit a 1:4 image in a 2:1 container", function () {
+			var r = ImageScaler2.calcRegion1(40, 160, 80, 40, false);
+			equals(r.mag, 0.25);
+			equals(r.l, 35);
+			equals(r.t, 0);
+			equals(r.r, 45);
+			equals(r.b, 40);
+		});
+
+
+		test("Can fill using a 1:4 image in a 2:1 container", function () {
+			var r = ImageScaler2.calcRegion1(40, 160, 80, 40, true);
+			equals(r.mag, 2.0);
+			equals(r.l, 0);
+			equals(r.t, -140);
+			equals(r.r, 80);
+			equals(r.b, 180);
+		});
+
+
+		test("Can fill using a 1:1 image in a 2:2 container", function () {
+			var r = ImageScaler2.calcRegion1(40, 40, 80, 80, true);
+			equals(r.mag, 2.0);
+			equals(r.l, 0);
+			equals(r.t, 0);
+			equals(r.r, 80);
+			equals(r.b, 80);
+		});
+
+		test("Can fit/center a 1:1 image in a 2:2 container", function () {
+			var r = ImageScaler2.calcRegion1(40, 40, 80, 80, false);
+			equals(r.mag, 1.0);
+			equals(r.l, 20);
+			equals(r.t, 20);
+			equals(r.r, 60);
+			equals(r.b, 60);
+		});
+
+		module("ImageScaler calcRegion3");
+
+		test("4:1 image in a 1:1 container center 1:1", function () {
+			var r = ImageScaler2.calcRegion3(40, 10, 10, 10, 0, 0, 10, 10, true);
+
+			equals(r.mag, 1.0, "mag");
+			equals(r.rmag, 1.0, "rmag");
+
+			equals(r.rw, 10, "rw");
+			equals(r.rh, 10, "rh");
+
+			equals(r.rxo, 5, "rxo");
+			equals(r.ryo, 5, "ryo");
+			equals(r.rxi, 5, "rxi");
+			equals(r.ryi, 5, "ryi");
+
+			equals(r.rxso, 30, "rxso");
+			equals(r.ryso, 0, "ryso");
+			equals(r.rxsi, 30, "rxsi");
+			equals(r.rysi, 0, "rysi");
+
+			equals(r.rxp, 0, "rxp");
+			equals(r.ryp, 0, "ryp");
+
+			equals(r.l, 0, "l");
+			equals(r.t, 0, "t");
+			equals(r.r, 40, "r");
+			equals(r.b, 10, "b");
+		});
+
+		test("4:1 image in a 1:1 container center 3:1", function () {
+			var r = ImageScaler2.calcRegion3(40, 10, 10, 10, 30, 0, 40, 10, true);
+
+			equals(r.mag, 1.0, "mag");
+			equals(r.rmag, 1.0, "rmag");
+
+			equals(r.rw, 10, "rw");
+			equals(r.rh, 10, "rh");
+
+			equals(r.rxo, 35, "rxo");
+			equals(r.ryo, 5, "ryo");
+			equals(r.rxi, 35, "rxi");
+			equals(r.ryi, 5, "ryi");
+
+			equals(r.rxso, 30, "rxso");
+			equals(r.ryso, 0, "ryso");
+			equals(r.rxsi, 30, "rxsi");
+			equals(r.rysi, 0, "rysi");
+
+			equals(r.rxp, 1, "rxp");
+			equals(r.ryp, 0, "ryp");
+
+			equals(r.l, -30, "l");
+			equals(r.t, 0, "t");
+			equals(r.r, 10, "r");
+			equals(r.b, 10, "b");
+		});
+
+		test("4:1 image in a 1:1 container center 3:1", function () {
+			var r = ImageScaler2.calcRegion3(80, 20, 10, 10,  60, 0, 80, 20, true);
+
+			equals(r.mag, 0.5, "mag");
+			equals(r.rmag, 0.5, "rmag");
+
+			equals(r.rw, 20, "rw");
+			equals(r.rh, 20, "rh");
+
+			equals(r.rxo, 35, "rxo");
+			equals(r.ryo, 5, "ryo");
+			equals(r.rxi, 70, "rxi");
+			equals(r.ryi, 10, "ryi");
+
+			equals(r.rxso, 30, "rxso");
+			equals(r.ryso, 0, "ryso");
+			equals(r.rxsi, 60, "rxsi");
+			equals(r.rysi, 0, "rysi");
+
+			equals(r.rxp, 1, "rxp");
+			equals(r.ryp, 0, "ryp");
+
+			equals(r.l, -30, "l");
+			equals(r.t, 0, "t");
+			equals(r.r, 10, "r");
+			equals(r.b, 10, "b");
+		});
+
+		test("4:1 image in a 1:1 container center 2:1", function () {
+			var r = ImageScaler2.calcRegion3(80, 20, 10, 10, 30, 0, 50, 20, true);
+
+			equals(r.mag, 0.5, "mag");
+			equals(r.rmag, 0.5, "rmag");
+
+			equals(r.rw, 20, "rw");
+			equals(r.rh, 20, "rh");
+
+			equals(r.rxo, 20, "rxo");
+			equals(r.ryo, 5, "ryo");
+			equals(r.rxi, 40, "rxi");
+			equals(r.ryi, 10, "ryi");
+
+			equals(r.rxso, 30, "rxso");
+			equals(r.ryso, 0, "ryso");
+			equals(r.rxsi, 60, "rxsi");
+			equals(r.rysi, 0, "rysi");
+
+			equals(r.rxp, 0.5, "rxp");
+			equals(r.ryp, 0, "ryp");
+
+			equals(r.l, -15, "l");
+			equals(r.t, 0, "t");
+			equals(r.r, 25, "r");
+			equals(r.b, 10, "b");
+		});
+
+	</script>
+</head>
+<body>
+
+	<h1 id="qunit-header">
+		ImageScaler2 Testsuite
+	</h1>
+	<h2 id="qunit-banner">
+	</h2>
+	<div id="qunit-testrunner-toolbar">
+	</div>
+	<h2 id="qunit-userAgent">
+	</h2>
+	<ol id="qunit-tests">
+	</ol>
+	<div id="qunit-fixture">
+		test markup, will be hidden
+	</div>
+</body>
+</html>
