@@ -1,0 +1,370 @@
+<html>
+<head>
+<style>
+
+body {
+	background-color: #000;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+}
+
+	.screen {
+		position: absolute;
+		height: 250px;
+		left: 200px;
+		top: 50px;
+	}
+
+	canvas#mapcanvas {
+		position: absolute;
+		right: 0px;
+		top: 0px;
+	} 
+
+	.screen ul {
+		position: absolute;
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		left: 0px;
+		top: 0px;
+	}
+
+	.screen ul img {
+		position: absolute;
+		margin: 0;
+		padding: 0;
+		left: -100px;
+		top: -100px;
+		-webkit-transform: scale(1.0);
+	}
+
+</style>
+</head>
+<body>
+
+	<div class="screen">
+		<canvas id="floorcanvas" width="320" height="240"></canvas>
+		<ul id="spritehost">
+			<img id="sprite0" src="debugsprite.png" />
+			<img id="sprite1" src="debugsprite.png" />
+			<img id="sprite2" src="debugsprite2.png" />
+			<img id="sprite3" src="debugsprite2.png" />
+			<img id="sprite4" src="debugsprite.png" />
+			<img id="sprite5" src="debugsprite.png" />
+			<img id="sprite6" src="debugsprite.png" />
+			<img id="sprite7" src="debugsprite2.png" />
+			<img id="sprite8" src="debugsprite.png" />
+		</ul>
+	</div>
+
+	<canvas id="mapcanvas" width="100" height="100"></canvas>
+	<xcanvas id="texturecanvas" width="256" height="256"></xcanvas>
+
+<script>
+
+	var player = { x: 64, y: 64, direction: 0 }
+
+	var t0 = (new Date()).getTime();
+	var time = 0;
+
+	function movement() {
+		var t1 = (new Date()).getTime();
+		time = (t1-t0) / 1000.0;
+		var r = 30 * time;
+		player.x = 128 + 100 * Math.cos(r * 1.3 * Math.PI / 180);
+		player.y = 128 + 100 * Math.sin(r * 1.8 * Math.PI / 180);
+		player.z = 45 + 35 * Math.sin(time);
+		// player.direction = 360 * Math.sin(time / 6.0);
+		player.direction = 180 + r;
+		// time * 30;
+		// console.log(player);
+	}
+
+	var sprites = [
+		{
+			id: 'sprite0',
+			direction: 0,
+			position: { x: 0, y: 0, z: 0 }
+		},
+		{
+			id: 'sprite1',
+			direction: 0,
+			position: { x: 128, y: 0, z: 0 }
+		},
+		{
+			id: 'sprite2',
+			direction: 0,
+			position: { x: 256, y: 0, z: 0 }
+		},
+		{
+			id: 'sprite3',
+			direction: 0,
+			position: { x: 0, y: 0, z: 128 }
+		},
+		{
+			id: 'sprite4',
+			direction: 0,
+			position: { x: 128, y: 0, z: 128 },
+		},
+		{
+			id: 'sprite5',
+			direction: 0,
+			position: { x: 256, y: 0, z: 128 },
+		},
+		{
+			id: 'sprite6',
+			direction: 0,
+			position: { x: 0, y: 0, z: 256 },
+		},
+		{
+			id: 'sprite7',
+			direction: 0,
+			position: { x: 128, y: 0, z: 256 },
+		},
+		{
+			id: 'sprite8',
+			direction: 0,
+			position: { x: 256, y: 0, z: 256 },
+		}
+	]
+
+	var floorcanvas = document.getElementById('floorcanvas');
+	var mapcanvas = document.getElementById('mapcanvas');
+
+	var img1 = new Image();
+	img1.setAttribute('src', 'debug.png');
+	var texturepixels = [];
+	img1.addEventListener('load', function(){
+		// var texturecanvas = document.getElementById('texturecanvas')
+		var texturecanvas = document.createElement('canvas');
+		texturecanvas.setAttribute('width', 256);
+		texturecanvas.setAttribute('height', 256);
+		var texturecontext = texturecanvas.getContext('2d');
+		texturecontext.drawImage(img1, 0, 0);
+		var texturedata = texturecontext.getImageData(0, 0, 256, 256);
+		texturepixels = texturedata.data;
+	})
+
+	var floorcontext = floorcanvas.getContext('2d');
+	var mapcontext = mapcanvas.getContext('2d');
+
+	function texline(target, x, y, width, u0,v0, u1,v1, bri) {
+		var o = (y * target.width) << 2;
+		var u = u0;
+		var v = v0;
+		var ud = (u1 - u0) / width;
+		var vd = (v1 - v0) / width;
+		var i = width;
+		while(i--) {
+			var uc = (Math.floor(u) + 512) % 256;
+			var vc = (Math.floor(v) + 512) % 256;
+			var o2 = ((vc * 256)+uc) * 4;
+ 			target.data[o++] = (texturepixels[o2++] * bri) >> 8;
+ 			target.data[o++] = (texturepixels[o2++] * bri) >> 8;
+ 			target.data[o++] = (texturepixels[o2++] * bri) >> 8;
+ 			target.data[o++] = 255;
+ 			u += ud;
+ 			v += vd;
+ 		}
+	}
+
+	function planeuv(dx, dy, dz, head) {
+		var dl = Math.sqrt(dx*dx + dy*dy + dz*dz);
+
+		var direction = {
+			x: dx / dl,
+			y: dy / dl,
+			z: dz / dl
+		};
+
+		var origin = {
+			x: 0,
+			y: head,
+			z: 0
+		};
+
+		var pointOnPlane = {
+			x: 0,
+			y: 0,
+			z: 0
+		}
+
+		var planeNormal = {
+			x: 0,
+			y: -1,
+			z: 0
+		}
+
+		var a = direction.x * planeNormal.x
+				+ direction.y * planeNormal.y
+				+ direction.z * planeNormal.z;
+
+    var t = ((pointOnPlane.x * planeNormal.x
+    	+ pointOnPlane.y * planeNormal.y
+    	+ pointOnPlane.z * planeNormal.z
+    	- planeNormal.x * origin.x
+    	- planeNormal.y * origin.y
+    	- planeNormal.z * origin.z)) / a;
+
+    var P = {
+			x: origin.x + (t * direction.x),
+			y: origin.y + (t * direction.y),
+			z: origin.z + (t * direction.z),
+		};
+
+		return {
+			u: P.x,
+			v: P.z,
+			t: t
+		}
+	}
+
+	function rotateuv(uv, r) {
+		var a = r * Math.PI / 180.0;
+		var u2 = uv.u * Math.sin(a) - uv.v * Math.cos(a);
+		var v2 = uv.u * Math.cos(a) + uv.v * Math.sin(a);
+		return {
+			u: u2,
+			v: v2
+		}
+	}
+
+	function offsetuv(uv, delta) {
+		uv.u += delta.u;
+		uv.v += delta.v;
+		return uv;
+	}
+
+	function renderfloor() {
+		var data = floorcontext.getImageData(0,0,320,240);
+		/*
+		for (var i=0; i<320*120*4; i++)
+			data.data[i] = Math.floor(Math.random() * 255);
+		*/
+		var lines = 120;
+
+		for (var i=0; i<lines; i++) {
+			// var inorm = i / lines;
+			var bri = 255 - i * 1.7;
+			var y = 240 - i;
+
+			var uv0 = planeuv(-160, lines-i, -120, player.z);
+			var uv1 = planeuv(160, lines-i, -120, player.z);
+
+			uv0 = rotateuv(uv0, -player.direction-180);
+			uv1 = rotateuv(uv1, -player.direction-180);
+
+			uv0 = offsetuv(uv0, { u: player.x, v: player.y });
+			uv1 = offsetuv(uv1, { u: player.x, v: player.y });
+
+			texline(data, 0, y, 320, uv0.u, uv0.v, uv1.u, uv1.v, bri);
+		}
+
+		floorcontext.putImageData(data, 0, 0);
+	}
+
+	var zmul = 120;
+	var zadd = 0;
+	var zzmul = 1;
+
+	function project(p, head) {
+		var mul = zmul / (zadd + p.z * zzmul);
+		var x = p.x * mul;
+		var y = (p.y + head) * mul;
+		return {
+			x: -x,
+			y: y,
+			scale: mul / 1.0,// / (p.z / 150),
+			visible: p.z > 0
+		}
+	}
+
+	function rendermap() {
+		var data = mapcontext.getImageData(0,0,100,100);
+
+		var fov = 45;
+		var rr = 150 + 125 * Math.sin(time * 3.0);
+		var rr2 = 150 + 125 * Math.cos(time * 2.6);
+		for (var i=0; i<100; i++) {
+			var bri = 255 - i * 2;
+
+			var uc = player.x + ((i-50) * Math.cos(player.direction * Math.PI / 180.0));
+			var vc = player.y + ((i-50) * Math.sin(player.direction * Math.PI / 180.0));
+
+			var ux = 64 * Math.cos((player.direction + 90) * Math.PI / 180.0);
+			var vx = 64 * Math.sin((player.direction + 90) * Math.PI / 180.0);
+
+			var y = 100 - i;
+
+			var a0 = player.direction - fov;
+			var a1 = player.direction + fov;
+
+			var u0 = uc - ux;
+			var v0 = vc - vx;
+
+			var u1 = uc + ux;
+			var v1 = vc + vx;
+
+			texline(data, 0, 99 - i, 100, u0,v0, u1,v1, bri);
+		}
+		mapcontext.putImageData(data, 0, 0);
+	}
+
+	function positionsprites() {
+		for (var i=0; i<sprites.length; i++) {
+			var sprite = sprites[i];
+			var uv0 = {
+				u: sprite.position.x,
+				v: sprite.position.z
+			};
+			uv0 = offsetuv(uv0, { u: -player.x, v: -player.y });
+			uv0 = rotateuv(uv0, player.direction);
+			var x = uv0.u;
+			var y = sprite.position.y;
+			var z = uv0.v;
+			// x = 0;
+			// y = 0;
+
+			var world = {
+				x: x,
+				y: y,
+				z: z
+			}
+
+			var sp = project(world, player.z);
+
+			// var rrr = planeuv()
+			x = sp.x;
+			y = sp.y;
+			x += 160;
+			y += 120;
+			x -= 32;
+			y -= 32;
+
+	//		console.log(sprite.id, x, y);
+			var el = document.getElementById(sprite.id);
+			el.style.display = sp.visible ? 'block' : 'none';
+			el.style.left = Math.round(x) + 'px';
+			el.style.top = Math.round(y) + 'px';
+			el.style.webkitTransform = 'scale('+sp.scale+')';
+		}
+	}
+
+	function frame() {
+		movement();
+		renderfloor();
+		rendermap();
+		positionsprites();
+	}
+
+//	if (window.requestAnimationFrame)
+//		window.requestAnimationFrame(frame);
+//	else
+	setInterval(frame, 15);
+
+</script>
+
+</body>
+</html>
